@@ -3,7 +3,7 @@
     import { goto } from "$app/navigation";
     import { browser } from "$app/environment";
     import { base } from "$app/paths";
-    import { defaultNavPage } from "$lib/subnav";
+    import { defaultNavPage, withBase } from "$lib/subnav";
 
     import { t } from "$lib/i18n/translations";
 
@@ -29,7 +29,7 @@
     $: isHome = $page.url.pathname === resolvedHomeNavPath;
     $: {
         if (browser && !isMobile && isHome) {
-            goto(defaultNavPage(pageName), { replaceState: true });
+            goto(withBase(defaultNavPage(pageName)), { replaceState: true });
         }
     }
 </script>
