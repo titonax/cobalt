@@ -95,6 +95,7 @@ const config = {
             pollInterval: 60000
         },
         paths: {
+            base: process.env.WEB_BASE_PATH || "",
             relative: false
         },
         alias: {
