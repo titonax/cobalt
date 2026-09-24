@@ -1,7 +1,11 @@
 name: Run service tests
 
 on:
+  workflow_dispatch:
   pull_request:
+    paths:
+      - api/**
+      - packages/**
   push:
     paths:
       - api/**
