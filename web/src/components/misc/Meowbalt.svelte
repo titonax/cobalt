@@ -9,6 +9,7 @@
 
     const { emotion, forceLoaded }: Props = $props();
 
+    const staticBase = import.meta.env.BASE_URL.replace(/\/$/, "");
     let loaded = $state(false);
 </script>
 
@@ -16,7 +17,7 @@
     class="meowbalt {emotion}"
     class:loaded={loaded || forceLoaded}
     onload={() => (loaded = true)}
-    src="/meowbalt/{emotion}.png"
+    src={`${staticBase}/meowbalt/${emotion}.png`}
     height="152"
     alt={$t("general.meowbalt")}
     aria-hidden="true"
