@@ -1,10 +1,11 @@
+import fs from "node:fs";
 import path from "node:path";
 
 import { env } from "../config.js";
 import { runTest } from "../misc/run-test.js";
 import { loadJSON } from "../misc/load-from-fs.js";
 import { Red, Bright } from "../misc/console-text.js";
-import { setGlobalDispatcher, EnvHttpProxyAgent, ProxyAgent } from "undici";
+import { setGlobalDispatcher, EnvHttpProxyAgent } from "undici";
 import { randomizeCiphers } from "../misc/randomize-ciphers.js";
 
 import { services } from "../processing/service-config.js";
@@ -12,17 +13,48 @@ import { services } from "../processing/service-config.js";
 const getTestPath = service => path.join('./src/util/tests/', `./${service}.json`);
 const getTests = (service) => loadJSON(getTestPath(service));
 
-// services that are known to frequently fail due to external
-// factors (e.g. rate limiting)
-const finnicky = new Set(
-    process.env.TEST_IGNORE_SERVICES
-    ? process.env.TEST_IGNORE_SERVICES.split(',')
-    : ['bilibili', 'instagram', 'facebook', 'youtube', 'vk', 'twitter', 'reddit']
+const parseServiceList = (value, fallback = []) => new Set(
+    value
+        ? value.split(',').map(service => service.trim()).filter(Boolean)
+        : fallback
 );
+
+// services that are known to frequently fail due to external
+// factors (e.g. rate limiting). these remain visible in CI,
+// but do not fail the job unless promoted through TEST_STRICT_SERVICES.
+const finnicky = parseServiceList(
+    process.env.TEST_IGNORE_SERVICES,
+    ['bilibili', 'instagram', 'facebook', 'youtube', 'vk', 'twitter', 'reddit']
+);
+
+// strict services override the finnicky service-level allow-failure behavior.
+// per-test "canFail" remains explicit and is not overridden.
+const strictServices = parseServiceList(process.env.TEST_STRICT_SERVICES);
+
+const appendGithubSummary = (service, result) => {
+    const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+    if (!summaryPath) return;
+
+    const mode = strictServices.has(service) ? 'strict' : (finnicky.has(service) ? 'observed' : 'default');
+    const summary = [
+        `### cobalt service regression: ${service}`,
+        '',
+        `Mode: **${mode}**`,
+        '',
+        '| result | count |',
+        '| --- | ---: |',
+        `| passed | ${result.passed} |`,
+        `| hard failures | ${result.hardFails} |`,
+        `| ignored failures | ${result.ignoredFails} |`,
+        '',
+    ].join('\n');
+
+    fs.appendFileSync(summaryPath, summary);
+}
 
 const runTestsFor = async (service) => {
     const tests = getTests(service);
-    let softFails = 0, fails = 0;
+    let fails = 0, hardFails = 0, ignoredFails = 0;
 
     if (!tests) {
         throw "no such service: " + service;
@@ -30,15 +62,21 @@ const runTestsFor = async (service) => {
 
     for (const test of tests) {
         const { name, url, params, expected } = test;
-        const canFail = test.canFail || finnicky.has(service);
+        const canFail = test.canFail || (
+            finnicky.has(service) && !strictServices.has(service)
+        );
 
         try {
             await runTest(url, params, expected);
             console.log(`${service}/${name}: ok`);
 
         } catch (e) {
-            softFails += !canFail;
             fails++;
+            if (canFail) {
+                ignoredFails++;
+            } else {
+                hardFails++;
+            }
 
             let failText = canFail ? `${Red('FAIL')} (ignored)` : Bright(Red('FAIL'));
             if (canFail && process.env.GITHUB_ACTION) {
@@ -60,7 +98,15 @@ const runTestsFor = async (service) => {
         }
     }
 
-    return { fails, softFails };
+    const result = {
+        passed: tests.length - fails,
+        fails,
+        hardFails,
+        ignoredFails,
+    };
+
+    appendGithubSummary(service, result);
+    return result;
 }
 
 const printHeader = (service, padLen) => {
@@ -102,8 +148,8 @@ switch (action) {
     case "run-tests-for":
 
         try {
-            const { softFails } = await runTestsFor(process.argv[3]);
-            process.exitCode = Number(!!softFails);
+            const { hardFails } = await runTestsFor(process.argv[3]);
+            process.exitCode = Number(!!hardFails);
         } catch (e) {
             console.error(e);
             process.exitCode = 1;
@@ -117,11 +163,11 @@ switch (action) {
 
         for (const service in services) {
             printHeader(service, maxHeaderLen);
-            const { fails, softFails } = await runTestsFor(service);
+            const { fails, hardFails } = await runTestsFor(service);
             failCounters[service] = fails;
             console.log();
 
-            if (!process.exitCode && softFails)
+            if (!process.exitCode && hardFails)
                 process.exitCode = 1;
         }
 
