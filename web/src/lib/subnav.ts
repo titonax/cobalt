@@ -1,4 +1,7 @@
 import { browser } from "$app/environment";
+import { base } from "$app/paths";
+
+const withBase = (path: string) => `${base}${path}`;
 
 const defaultNavPage = (page: "settings" | "about") => {
     if (browser && window.innerWidth <= 750) {
@@ -13,4 +16,4 @@ const defaultNavPage = (page: "settings" | "about") => {
     }
 }
 
-export { defaultNavPage };
+export { defaultNavPage, withBase };

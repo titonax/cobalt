@@ -10,6 +10,7 @@
     import { page } from "$app/stores";
     import { updated } from "$app/stores";
     import { browser } from "$app/environment";
+    import { base } from "$app/paths";
     import { afterNavigate } from "$app/navigation";
 
     import "$lib/polyfills";
@@ -31,6 +32,8 @@
     import ProcessingQueue from "$components/queue/ProcessingQueue.svelte";
     import UpdateNotification from "$components/misc/UpdateNotification.svelte";
 
+    const homePath = `${base}/`;
+
     $: reduceMotion =
         $settings.accessibility.reduceMotion || device.prefers.reducedMotion;
 
@@ -46,7 +49,7 @@
             document.querySelector("[data-first-focus]");
         to_focus?.focus();
 
-        if ($page.url.pathname === "/") {
+        if ($page.url.pathname === homePath) {
             await getServerInfo();
         }
     });
@@ -97,7 +100,12 @@
     lang={$locale}
 >
     {#if preloadAssets}
-        <div id="preload" aria-hidden="true">??</div>
+        <div id="preload" aria-hidden="true">
+            <img src="{base}/meowbalt/smile.png" alt="" />
+            <img src="{base}/meowbalt/error.png" alt="" />
+            <img src="{base}/meowbalt/question.png" alt="" />
+            <img src="{base}/meowbalt/think.png" alt="" />
+        </div>
     {/if}
     <div
         id="cobalt"
@@ -118,7 +126,7 @@
         {/if}
         <ProcessingQueue />
         <div id="content">
-            {#if ($turnstileEnabled && $page.url.pathname === "/") || $turnstileCreated}
+            {#if ($turnstileEnabled && $page.url.pathname === homePath) || $turnstileCreated}
                 <Turnstile />
             {/if}
             <slot></slot>
@@ -217,9 +225,6 @@
         height: 0;
         position: absolute;
         z-index: -10;
-        content: url(/meowbalt/smile.png) url(/meowbalt/error.png)
-            url(/meowbalt/question.png) url(/meowbalt/think.png);
-
         font-family: "Noto Sans Mono";
         font-size: 0;
         opacity: 0;
@@ -228,5 +233,10 @@
         user-select: none;
         -webkit-user-select: none;
         -webkit-user-drag: none;
+    }
+
+    #preload :global(img) {
+        width: 1px;
+        height: 1px;
     }
 </style>

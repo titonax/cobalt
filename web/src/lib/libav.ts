@@ -32,7 +32,7 @@ export default class LibAVWrapper {
             this.libav = constructor({
                 ...options,
                 variant: undefined,
-                base: '/_libav'
+                base: `${import.meta.env.BASE_URL.replace(/\/$/, '')}/_libav`
             });
         }
     }
@@ -147,11 +147,9 @@ export default class LibAVWrapper {
 
         const status: FFmpegProgressStatus = (() => {
             const { progress } = entries;
-
             if (progress === 'continue' || progress === 'end') {
                 return progress;
             }
-
             return "unknown";
         })();
 

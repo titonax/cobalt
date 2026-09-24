@@ -1,11 +1,19 @@
 name: Run service tests
 
 on:
+  workflow_dispatch:
   pull_request:
+    paths:
+      - api/**
+      - packages/**
   push:
     paths:
       - api/**
       - packages/**
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
 
 jobs:
   check-services:

@@ -2,16 +2,18 @@
     import { onMount } from "svelte";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
-    import { defaultNavPage } from "$lib/subnav";
+    import { base } from "$app/paths";
+    import { defaultNavPage, withBase } from "$lib/subnav";
 
     onMount(() => {
         if (page.error?.message === "Not Found") {
-            if (page.url.pathname.startsWith("/settings")) {
-                goto(defaultNavPage("settings"), { replaceState: true });
-            } else if (page.url.pathname.startsWith("/about")) {
-                goto(defaultNavPage("about"), { replaceState: true });
+            const pathname = page.url.pathname.slice(base.length) || "/";
+            if (pathname.startsWith("/settings")) {
+                goto(withBase(defaultNavPage("settings")), { replaceState: true });
+            } else if (pathname.startsWith("/about")) {
+                goto(withBase(defaultNavPage("about")), { replaceState: true });
             } else {
-                goto("/", { replaceState: true });
+                goto(`${base}/`, { replaceState: true });
             }
         }
     });

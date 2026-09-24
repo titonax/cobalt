@@ -6,6 +6,27 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { sveltePreprocess } from "svelte-preprocess";
 
+const webBasePath = process.env.WEB_BASE_PATH || "";
+
+const prefixInternalMarkdownLinks = () => (tree) => {
+    const walk = (node) => {
+        if (
+            node?.type === "link"
+            && typeof node.url === "string"
+            && node.url.startsWith("/")
+            && !node.url.startsWith("//")
+        ) {
+            node.url = `${webBasePath}${node.url}`;
+        }
+
+        if (Array.isArray(node?.children)) {
+            node.children.forEach(walk);
+        }
+    };
+
+    walk(tree);
+};
+
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
     // Consult https://kit.svelte.dev/docs/integrations#preprocessors
@@ -26,6 +47,7 @@ const config = {
         sveltePreprocess(),
         mdsvex({
             extensions: ['.md'],
+            remarkPlugins: [prefixInternalMarkdownLinks],
             layout: {
                 about: join(
                     dirname(fileURLToPath(import.meta.url)),
@@ -95,6 +117,7 @@ const config = {
             pollInterval: 60000
         },
         paths: {
+            base: webBasePath,
             relative: false
         },
         alias: {

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { page } from "$app/stores";
+    import { base } from "$app/paths";
 
     import { t } from "$lib/i18n/translations";
 
@@ -13,7 +14,9 @@
 
     let tab: HTMLElement;
 
-    $: currentTab = $page.url.pathname.split("/")[1];
+    $: resolvedPath = `${base}${path}`;
+    $: relativeCurrentPath = $page.url.pathname.slice(base.length) || "/";
+    $: currentTab = relativeCurrentPath.split("/")[1];
     $: baseTabPath = path.split("/")[1];
 
     $: isTabActive = currentTab === baseTabPath;
@@ -37,7 +40,7 @@
     id="sidebar-tab-{name}"
     class="sidebar-tab"
     class:active={isTabActive}
-    href={path}
+    href={resolvedPath}
     bind:this={tab}
     on:focus={() => showTab(tab)}
     role="tab"

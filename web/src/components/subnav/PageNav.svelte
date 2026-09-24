@@ -2,7 +2,8 @@
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
     import { browser } from "$app/environment";
-    import { defaultNavPage } from "$lib/subnav";
+    import { base } from "$app/paths";
+    import { defaultNavPage, withBase } from "$lib/subnav";
 
     import { t } from "$lib/i18n/translations";
 
@@ -24,10 +25,11 @@
             : "";
 
     $: isMobile = screenWidth <= 750;
-    $: isHome = $page.url.pathname === homeNavPath;
+    $: resolvedHomeNavPath = `${base}${homeNavPath}`;
+    $: isHome = $page.url.pathname === resolvedHomeNavPath;
     $: {
         if (browser && !isMobile && isHome) {
-            goto(defaultNavPage(pageName), { replaceState: true });
+            goto(withBase(defaultNavPage(pageName)), { replaceState: true });
         }
     }
 </script>
@@ -51,7 +53,7 @@
                 {#if !isHome}
                     <a
                         class="back-button"
-                        href={homeNavPath}
+                        href={resolvedHomeNavPath}
                         role="button"
                         aria-label={$t("a11y.general.back")}
                     >
