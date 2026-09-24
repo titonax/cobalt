@@ -1,5 +1,6 @@
 <script lang="ts">
     import { page } from "$app/stores";
+    import { base } from "$app/paths";
 
     import IconChevronRight from "@tabler/icons-svelte/IconChevronRight.svelte";
 
@@ -8,12 +9,13 @@
     export let icon: ConstructorOfATypedSvelteComponent;
     export let iconColor: "gray" | "blue" | "green" | "magenta" | "purple" | "orange" = "gray";
 
-    $: isActive = $page.url.pathname === path;
+    $: resolvedPath = `${base}${path}`;
+    $: isActive = $page.url.pathname === resolvedPath;
 </script>
 
 <a
     class="subnav-tab"
-    href={path}
+    href={resolvedPath}
     class:active={isActive}
     role="button"
 >
