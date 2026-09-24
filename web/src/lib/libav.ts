@@ -1,5 +1,4 @@
 import * as Storage from "$lib/storage";
-import { base } from "$app/paths";
 import LibAV, { type LibAV as LibAVInstance } from "@imput/libav.js-remux-cli";
 import EncodeLibAV from "@imput/libav.js-encode-cli";
 
@@ -33,7 +32,7 @@ export default class LibAVWrapper {
             this.libav = constructor({
                 ...options,
                 variant: undefined,
-                base: `${base}/_libav`
+                base: `${import.meta.env.BASE_URL.replace(/\/$/, '')}/_libav`
             });
         }
     }
