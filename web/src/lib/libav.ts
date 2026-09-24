@@ -1,4 +1,5 @@
 import * as Storage from "$lib/storage";
+import { base } from "$app/paths";
 import LibAV, { type LibAV as LibAVInstance } from "@imput/libav.js-remux-cli";
 import EncodeLibAV from "@imput/libav.js-encode-cli";
 
@@ -32,7 +33,7 @@ export default class LibAVWrapper {
             this.libav = constructor({
                 ...options,
                 variant: undefined,
-                base: '/_libav'
+                base: `${base}/_libav`
             });
         }
     }
@@ -147,11 +148,9 @@ export default class LibAVWrapper {
 
         const status: FFmpegProgressStatus = (() => {
             const { progress } = entries;
-
             if (progress === 'continue' || progress === 'end') {
                 return progress;
             }
-
             return "unknown";
         })();
 
