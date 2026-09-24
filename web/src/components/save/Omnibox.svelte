@@ -5,6 +5,7 @@
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
     import { browser } from "$app/environment";
+    import { base } from "$app/paths";
 
     import { t } from "$lib/i18n/translations";
 
@@ -68,7 +69,7 @@
             }
 
             // clear hash and query to prevent bookmarking unwanted links
-            if (browser) goto("/", { replaceState: true });
+            if (browser) goto(`${base}/`, { replaceState: true });
 
             // clear link prefill to avoid extra effects
             linkPrefill = "";
