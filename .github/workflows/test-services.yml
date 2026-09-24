@@ -7,6 +7,10 @@ on:
       - api/**
       - packages/**
 
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
 jobs:
   check-services:
     name: test service functionality
