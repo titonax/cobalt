@@ -5,14 +5,14 @@ const withBase = (path: string) => `${base}${path}`;
 
 const defaultNavPage = (page: "settings" | "about") => {
     if (browser && window.innerWidth <= 750) {
-        return withBase(`/${page}`);
+        return `/${page}`;
     }
 
     switch (page) {
         case "settings":
-            return withBase("/settings/appearance");
+            return "/settings/appearance";
         case "about":
-            return withBase("/about/general");
+            return "/about/general";
     }
 }
 
